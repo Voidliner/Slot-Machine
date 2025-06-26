@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Slot Machine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      position: relative;
+      background: #333;
+      padding: 40px;
+      border-radius: 20px;
+      width: 600px;
+      text-align: center;
+    }
+
+    .money-label {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Message style */
+    #message {
+      margin: 60px 0 20px;
+      font-size: 24px;
+      color: #eee;
+      min-height: 30px;
+      font-weight: bold;
+      transition: color 1s ease, opacity 1s ease;
+    }
+
+    /* Flashing & color-switching animation */
+    @keyframes flashColors {
+      0%   { color: #e74c3c; opacity: 1; }
+      25%  { color: #f1c40f; opacity: 0.5; }
+      50%  { color: #2ecc71; opacity: 1; }
+      75%  { color: #3498db; opacity: 0.5; }
+      100% { color: #e74c3c; opacity: 1; }
+    }
+
+    .slot-machine-flash {
+      animation: flashColors 3s linear infinite;
+    }
+
+    .slot-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 0 40px 0;
+    }
+
+    .slot-box {
+      width: 100px;
+      height: 100px;
+      background: #444;
+      border: 2px solid #888;
+      margin: 0 10px;
+      font-size: 48px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+    }
+
+    .lever-button {
+      position: absolute;
+      top: 50%;
+      right: -70px;
+      transform: translateY(-50%);
+      background: #f39c12;
+      color: #000;
+      padding: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      font-size: 16px;
+    }
+
+    .bet-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    .arrow-button {
+      background: #555;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .bet-amount {
+      font-size: 20px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .preset-bets {
+      margin-top: 20px;
+    }
+
+    .preset-bets button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #27ae60;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="money-label">💰 $<span id="money">1000</span></div>
+
+  <!-- Message -->
+  <div id="message">SLOT MACHINE</div>
+
+  <div class="slot-row">
+    <div class="slot-box" id="slot1">🍒</div>
+    <div class="slot-box" id="slot2">🍋</div>
+    <div class="slot-box" id="slot3">🔔</div>
+  </div>
+
+  <button class="lever-button" id="spinButton">🎯</button>
+
+  <div class="bet-controls">
+    <button class="arrow-button" onclick="changeBet(-1)">◀</button>
+    <div class="bet-amount" id="betDisplay">10</div>
+    <button class="arrow-button" onclick="changeBet(1)">▶</button>
+  </div>
+
+  <div class="preset-bets">
+    <button onclick="setBet(1)">1</button>
+    <button onclick="setBet(5)">5</button>
+    <button onclick="setBet(10)">10</button>
+    <button onclick="setBet(100)">100</button>
+    <button onclick="setBet(1000)">1000</button>
+  </div>
+</div>
+
+<script>
+  // Configurations
+  let currentBet = 10;
+  let playerMoney = 1000;
+  const betOptions = [1, 5, 10, 100, 1000];
+  const symbols = ["🍒", "🍋", "🔔", "🍉", "💎"];
+  const payouts = {
+    "🍒": 2,
+    "🍋": 3,
+    "🔔": 5,
+    "🍉": 7,
+    "💎": 10
+  };
+
+  // DOM Elements
+  const slotBoxes = [
+    document.getElementById("slot1"),
+    document.getElementById("slot2"),
+    document.getElementById("slot3")
+  ];
+  const moneyLabel = document.getElementById("money");
+  const betDisplay = document.getElementById("betDisplay");
+  const spinButton = document.getElementById("spinButton");
+  const messageDiv = document.getElementById("message");
+
+  let isSpinning = false;
+  let resetMessageTimeout = null;
+
+  // Update UI displays
+  function updateBetDisplay() {
+    betDisplay.textContent = currentBet;
+  }
+
+  function updateMoneyDisplay() {
+    moneyLabel.textContent = playerMoney;
+  }
+
+  function showMessage(text, isSlotMachine = false) {
+    clearTimeout(resetMessageTimeout);
+
+    messageDiv.textContent = text;
+
+    if (isSlotMachine) {
+      messageDiv.classList.add("slot-machine-flash");
+    } else {
+      messageDiv.classList.remove("slot-machine-flash");
+      // After 5 seconds, revert back to flashing "SLOT MACHINE"
+      resetMessageTimeout = setTimeout(() => {
+        showMessage("SLOT MACHINE", true);
+      }, 5000);
+    }
+  }
+
+  // Change bet with arrows
+  function changeBet(direction) {
+    const index = betOptions.indexOf(currentBet);
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < betOptions.length) {
+      currentBet = betOptions[newIndex];
+      updateBetDisplay();
+    }
+  }
+
+  // Set fixed bet
+  function setBet(value) {
+    if (betOptions.includes(value)) {
+      currentBet = value;
+      updateBetDisplay();
+    }
+  }
+
+  // Check results after spin
+  function checkPrize(results) {
+    const [s1, s2, s3] = results;
+
+    if (s1 === s2 && s2 === s3) {
+      // Triple match
+      const multiplier = payouts[s1];
+      const prize = currentBet * multiplier;
+      playerMoney += prize;
+      updateMoneyDisplay();
+      showMessage(`🎉 Triple ${s1}! You won $${prize}`);
+    } else if (s1 === s2 || s1 === s3 || s2 === s3) {
+      // Pair match
+      const matchedSymbol = s1 === s2 ? s1 : s1 === s3 ? s1 : s2;
+      const multiplier = payouts[matchedSymbol];
+      const prize = Math.floor(currentBet * (multiplier / 2));
+      playerMoney += prize;
+      updateMoneyDisplay();
+      showMessage(`✨ Pair of ${matchedSymbol}! You won $${prize}`);
+    } else {
+      // No match
+      showMessage(`😢 No match. You lost $${currentBet}.`);
+    }
+  }
+
+  // Handle spin logic
+  function spinSlots() {
+    if (isSpinning) return;
+    if (playerMoney < currentBet) {
+      alert("Not enough money!");
+      return;
+    }
+
+    isSpinning = true;
+    playerMoney -= currentBet;
+    updateMoneyDisplay();
+
+    showMessage("Spinning...");
+
+    let intervals = [];
+    const results = [];
+
+    // Start shuffling animation
+    slotBoxes.forEach((box, i) => {
+      intervals[i] = setInterval(() => {
+        const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+        box.textContent = randomSymbol;
+      }, 100);
+    });
+
+    // Stop after 2 seconds and pick final symbols
+    setTimeout(() => {
+      slotBoxes.forEach((box, i) => {
+        clearInterval(intervals[i]);
+        const finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+        box.textContent = finalSymbol;
+        results[i] = finalSymbol;
+      });
+
+      isSpinning = false;
+      checkPrize(results);
+    }, 2000);
+  }
+
+  // Event listeners
+  spinButton.addEventListener("click", spinSlots);
+
+  // Init display with flashy "SLOT MACHINE"
+  updateBetDisplay();
+  updateMoneyDisplay();
+  showMessage("SLOT MACHINE", true);
+</script>
+
+</body>
+</html>
