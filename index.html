@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head >
+  <meta charset="UTF-8">
+  <title>Splatter</title>
+  <link rel = "stylesheet" type = "text/css" href = "index.css">
+  <link rel="icon" href="panik.png">
+</head>
+
+<body>
+    <div class="wrapper">
+      <div class="form-header">
+          <div class="titles">
+              <div class="title-login">Login</div>
+              <div class="title-register">Register</div>
+          </div>
+      </div>
+
+      <!-- LOGIN FORM -->
+        <form action = "#" id="signinForm" class="login-form" autocomplete="off">
+          <div class="input-box">
+            <input type="text" class="input-field" id="signinUsername" required>
+            <label for="signinUsername" class="label">Username</label>
+          </div>
+          <div class="input-box">
+            <input type="password" class="input-field" id="signinPassword" required>
+            <label for="signinPassword" class="label">Password</label>
+          </div>
+          <div class="input-box">
+            <button type="submit" class="btn-submit">Sign In</button>
+          </div>
+          <div class="switch-form">
+            <span>Don't have an account? <a class = "registerSwitch" href="#" onclick="registerFunction()">Register</a></span>
+          </div>
+        </form>
+
+      <!-- REGISTER FORM -->
+        <form action = "#" id="signupForm" class="register-form" autocomplete="off">
+          <div class="input-box">
+            <input type="text" class="input-field" id="signupUsername" required>
+            <label for="signupUsername" class="label">Username</label>
+          </div>
+          <div class="input-box">
+            <input type="password" class="input-field" id="signupPassword" required>
+            <label for="signupPassword" class="label">Password</label>
+          </div>
+          <div class="input-box">
+            <button type="submit" class="btn-submit">Sign Up</button>
+          </div>
+          <div class="switch-form">
+            <span>Already have an account? <a class = "loginSwitch" href="#" onclick="loginFunction()">Login</a></span>
+          </div>
+        </form>
+
+
+<script>
+  // UI Toggle Functions
+  const loginForm = document.querySelector(".login-form");
+  const registerForm = document.querySelector(".register-form");
+  const wrapper = document.querySelector(".wrapper");
+  const loginTitle = document.querySelector(".title-login");
+  const registerTitle = document.querySelector(".title-register");
+  const signUpBtn = document.querySelector("#SignUpBtn");
+  const signInBtn = document.querySelector("#SignInBtn");
+
+  function loginFunction() {
+    loginForm.style.left = "50%";
+    loginForm.style.opacity = 1;
+    registerForm.style.left = "150%";
+    registerForm.style.opacity = 0;
+    wrapper.style.height = "500px";
+    loginTitle.style.top = "50%";
+    loginTitle.style.opacity = 1;
+    registerTitle.style.top = "50px";
+    registerTitle.style.opacity = 0;
+  }
+
+  function registerFunction() {
+    loginForm.style.left = "-50%";
+    loginForm.style.opacity = 0;
+    registerForm.style.left = "50%";
+    registerForm.style.opacity = 1;
+    wrapper.style.height = "500px";
+    loginTitle.style.top = "-60px";
+    loginTitle.style.opacity = 0;
+    registerTitle.style.top = "50%";
+    registerTitle.style.opacity = 1;
+  }
+
+  // Button Event Listeners for Switching Forms
+  if (signUpBtn) signUpBtn.addEventListener("click", registerFunction);
+  if (signInBtn) signInBtn.addEventListener("click", loginFunction);
+
+  // Sign Up Form Submission
+  const signupForm = document.getElementById("signupForm");
+  if (signupForm) {
+    signupForm.onsubmit = function(e) {
+      e.preventDefault();
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "signup.php", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+      const username = document.getElementById("signupUsername").value;
+      const password = document.getElementById("signupPassword").value;
+
+      xhr.onload = function() {
+        console.log(xhr.responseText);
+        alert(xhr.responseText);
+      };
+
+      xhr.send("username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password));
+    };
+  }
+
+  // Sign In Form Submission
+  const signinForm = document.getElementById("signinForm");
+  if (signinForm) {
+    signinForm.onsubmit = function(e) {
+      e.preventDefault();
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "signin.php", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+      const username = document.getElementById("signinUsername").value;
+      const password = document.getElementById("signinPassword").value;
+
+      xhr.onload = function() {
+        if (xhr.responseText.trim() === "SUCCESS") {
+          alert("Login successful! Redirecting to slot machine...");
+          console.log("Login successful! Redirecting to slot machine...");
+          setTimeout(function() {
+            window.location.href = "slotmachine.html";
+          }, 3000);
+        } else {
+          alert(xhr.responseText);
+          console.log(xhr.responseText);
+        }
+      };
+
+      xhr.send("username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password));
+    };
+  }
+</script>
+
+</body>
+</html>
